@@ -3,9 +3,9 @@ package com.sprint.mission.discodeit.controller;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.PageResponse; // 추가
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.service.UserService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-// ... 상단 import 생략
-
 @Slf4j
 @RestController
 @RequestMapping("/api/users")
@@ -29,26 +27,32 @@ public class UserController {
   private final UserService userService;
 
   @GetMapping
-  public ResponseEntity<List<UserDto>> findAll() {
-    log.debug("Fetching all users list");
-    return ResponseEntity.ok(userService.findAll());
+  public ResponseEntity<PageResponse<UserDto>> findAll() {
+    log.debug("명세서 규격(PageResponse)에 맞춰 유저 목록을 조회합니다.");
+    List<UserDto> users = userService.findAll();
+
+    // 명세서(api.json)의 PageResponse 구조를 그대로 재현합니다.
+    PageResponse<UserDto> response = new PageResponse<>(
+        users,           // content: 유저 배열
+        null,            // nextCursor: 페이징 미구현이므로 null
+        users.size(),    // size: 현재 리스트 크기
+        false,           // hasNext: 다음 페이지 없음
+        (long) users.size() // totalElements: 전체 유저 수
+    );
+
+    return ResponseEntity.ok(response);
   }
 
-  // 1. 회원가입: "userCreateRequest"로 명칭 수정
   @PostMapping
   public ResponseEntity<UserDto> register(
       @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
       @RequestPart(value = "profile", required = false) MultipartFile profile) {
     log.info("Registering new user with email: {}", request.email());
     BinaryContentCreateRequest profileRequest = resolveProfileRequest(profile);
-
     UserDto userDto = userService.create(request, profileRequest);
-
-    log.info("User registered successfully. ID: {}", userDto.id());
     return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
   }
 
-  // 2. 정보 수정: "userUpdateRequest"로 명칭 수정
   @PatchMapping("/{userId}")
   public ResponseEntity<UserDto> update(
       @PathVariable UUID userId,
