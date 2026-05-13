@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // 추가
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,11 +18,12 @@ public class DiscodeitUserDetailsService implements UserDetailsService {
   private final UserMapper userMapper;
 
   @Override
-  @Transactional(readOnly = true) // 반드시 추가: 프사 매핑 시 Lazy 로딩 에러 방지
+  @Transactional(readOnly = true) // 프사 로딩 시 세션 에러 방지용
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     User user = userRepository.findByEmail(email)
         .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
+    // userMapper.toDto(user) 결과와 password를 넘깁니다.
     return new DiscodeitUserDetails(
         userMapper.toDto(user),
         user.getPassword()

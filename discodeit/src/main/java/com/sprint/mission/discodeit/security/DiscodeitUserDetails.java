@@ -16,11 +16,9 @@ public class DiscodeitUserDetails implements UserDetails {
   private final String password;
 
   public DiscodeitUserDetails(UserDto userDto, String password) {
-    // 프론트엔드 규격(ROLE_ADMIN 등)을 맞추기 위해
-    // DTO를 생성할 때 role에 접두사가 없다면 붙여서 저장합니다.
-    String roleWithPrefix = userDto.role().startsWith("ROLE_")
-        ? userDto.role()
-        : "ROLE_" + userDto.role();
+    // null 방지 및 ROLE_ 접두사 강제 부여
+    String roleStr = userDto.role() == null ? "USER" : userDto.role();
+    String roleWithPrefix = roleStr.startsWith("ROLE_") ? roleStr : "ROLE_" + roleStr;
 
     this.userDto = new UserDto(
         userDto.id(),
@@ -35,51 +33,32 @@ public class DiscodeitUserDetails implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    // 이미 ROLE_이 붙은 role을 권한으로 반환합니다.
     return Collections.singleton(new SimpleGrantedAuthority(userDto.role()));
   }
 
   @Override
-  public String getPassword() {
-    return this.password;
-  }
+  public String getPassword() { return this.password; }
 
   @Override
-  public String getUsername() {
-    return userDto.email(); // 이메일을 로그인 ID(username)로 사용
-  }
+  public String getUsername() { return userDto.email(); }
 
   @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
+  public boolean isAccountNonExpired() { return true; }
   @Override
-  public boolean isAccountNonLocked() {
-    return true;
-  }
-
+  public boolean isAccountNonLocked() { return true; }
   @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
+  public boolean isCredentialsNonExpired() { return true; }
   @Override
-  public boolean isEnabled() {
-    return true;
-  }
+  public boolean isEnabled() { return true; }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     DiscodeitUserDetails that = (DiscodeitUserDetails) o;
-    // 세션 중복 체크 등을 위해 ID 기준으로 비교합니다.
     return Objects.equals(userDto.id(), that.userDto.id());
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(userDto.id());
-  }
+  public int hashCode() { return Objects.hash(userDto.id()); }
 }
