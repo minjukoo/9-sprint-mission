@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -122,13 +123,14 @@ public class BasicUserService implements UserService {
   }
 
   private UserDto toDtoWithOnlineStatus(User user) {
-    UserDto dto = userMapper.toDto(user);
+    List<Object> principals = sessionRegistry.getAllPrincipals();
+    log.info("현재 세션 레지스터에 등록된 인원 수: {}", principals.size()); // 이게 0이면 등록 자체가 안 된 것
 
-    // SessionRegistry에서 현재 접속 중인 유저인지 확인
-    boolean isOnline = sessionRegistry.getAllPrincipals().stream()
-        .filter(principal -> principal instanceof com.sprint.mission.discodeit.security.DiscodeitUserDetails)
-        .map(principal -> (com.sprint.mission.discodeit.security.DiscodeitUserDetails) principal)
-        .anyMatch(userDetails -> userDetails.getUserDto().id().equals(user.getId()));
+    boolean isOnline = principals.stream()
+        .filter(p -> p instanceof DiscodeitUserDetails)
+        .map(p -> (DiscodeitUserDetails) p)
+        .anyMatch(u -> u.getUserDto().id().equals(user.getId()));
+    UserDto dto = userMapper.toDto(user);
 
     return new UserDto(
         dto.id(),
