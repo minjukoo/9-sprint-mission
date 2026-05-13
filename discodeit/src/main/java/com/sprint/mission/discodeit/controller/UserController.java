@@ -18,11 +18,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+// ... 상단 import 생략
+
 @Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UserController { // UserApi 인터페이스도 함께 수정이 필요할 수 있습니다.
+public class UserController {
 
   private final UserService userService;
 
@@ -32,9 +34,11 @@ public class UserController { // UserApi 인터페이스도 함께 수정이 필
     return ResponseEntity.ok(userService.findAll());
   }
 
+  // 1. 회원가입: "userCreateRequest"로 명칭 수정
   @PostMapping
-  public ResponseEntity<UserDto> register(@Valid @RequestPart UserCreateRequest request,
-      @RequestPart(required = false) MultipartFile profile) {
+  public ResponseEntity<UserDto> register(
+      @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
+      @RequestPart(value = "profile", required = false) MultipartFile profile) {
     log.info("Registering new user with email: {}", request.email());
     BinaryContentCreateRequest profileRequest = resolveProfileRequest(profile);
 
@@ -44,9 +48,12 @@ public class UserController { // UserApi 인터페이스도 함께 수정이 필
     return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
   }
 
+  // 2. 정보 수정: "userUpdateRequest"로 명칭 수정
   @PatchMapping("/{userId}")
-  public ResponseEntity<UserDto> update(@PathVariable UUID userId, @Valid @RequestPart UserUpdateRequest request,
-      @RequestPart(required = false) MultipartFile profile) {
+  public ResponseEntity<UserDto> update(
+      @PathVariable UUID userId,
+      @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
+      @RequestPart(value = "profile", required = false) MultipartFile profile) {
     log.info("Updating user information for ID: {}", userId);
     BinaryContentCreateRequest profileRequest = resolveProfileRequest(profile);
     return ResponseEntity.ok(userService.update(userId, request, profileRequest));
