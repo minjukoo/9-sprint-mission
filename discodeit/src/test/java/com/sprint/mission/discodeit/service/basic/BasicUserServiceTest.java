@@ -18,7 +18,6 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,8 +39,6 @@ class BasicUserServiceTest {
   @Mock
   private PasswordEncoder passwordEncoder;
   @Mock
-  private UserStatusService userStatusService;
-  @Mock
   private BinaryContentService binaryContentService;
   @Mock
   private BinaryContentRepository binaryContentRepository;
@@ -55,20 +52,20 @@ class BasicUserServiceTest {
   @DisplayName("사용자 생성 성공")
   void create_Success() {
     UserCreateRequest request = new UserCreateRequest("minju", "test@test.com", "password123");
-    User user = new User("minju", "test@test.com", "encoded", null);
+    // User 생성자에 role('USER') 추가
+    User user = new User("minju", "test@test.com", "encoded", null, "USER");
 
     given(userRepository.existsByEmail(anyString())).willReturn(false);
     given(passwordEncoder.encode(anyString())).willReturn("encoded");
     given(userRepository.save(any(User.class))).willReturn(user);
+    // UserDto 응답 시 online 상태는 임시로 false 처리 (또는 SessionRegistry 연동 후 수정)
     given(userMapper.toDto(any(User.class))).willReturn(
-        new UserDto(UUID.randomUUID(), "minju", "test@test.com", null, true));
-    given(userStatusService.isUserOnline(any())).willReturn(true);
+        new UserDto(UUID.randomUUID(), "minju", "test@test.com", null, false));
 
     UserDto result = userService.create(request, null);
 
     assertThat(result.username()).isEqualTo("minju");
-    assertThat(result.online()).isTrue();
-    verify(userStatusService).create(any());
+    assertThat(result.online()).isFalse();
   }
 
   @Test
@@ -84,12 +81,11 @@ class BasicUserServiceTest {
   @DisplayName("사용자 수정 성공")
   void update_Success() {
     UUID userId = UUID.randomUUID();
-    User user = new User("old", "old@test.com", "pw", null);
+    User user = new User("old", "old@test.com", "pw", null, "USER");
     UserUpdateRequest request = new UserUpdateRequest("new", "new@test.com", "newpassword");
 
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(passwordEncoder.encode(anyString())).willReturn("new-encoded");
-    given(userStatusService.isUserOnline(any())).willReturn(false);
     given(userMapper.toDto(any(User.class))).willReturn(
         new UserDto(userId, "new", "new@test.com", null, false));
 
@@ -103,7 +99,7 @@ class BasicUserServiceTest {
   @DisplayName("사용자 삭제 성공")
   void delete_Success() {
     UUID userId = UUID.randomUUID();
-    User user = new User("user", "test@test.com", "pw", null);
+    User user = new User("user", "test@test.com", "pw", null, "USER");
 
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
     given(channelRepository.findAllByUserId(userId)).willReturn(List.of());

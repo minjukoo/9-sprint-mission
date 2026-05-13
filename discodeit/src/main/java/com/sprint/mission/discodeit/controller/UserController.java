@@ -2,12 +2,9 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
-import com.sprint.mission.discodeit.dto.response.UserStatusDto;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,46 +22,37 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UserController implements UserApi {
+public class UserController { // UserApi 인터페이스도 함께 수정이 필요할 수 있습니다.
 
   private final UserService userService;
-  private final UserStatusService userStatusService;
 
-  @Override
+  @GetMapping
   public ResponseEntity<List<UserDto>> findAll() {
     log.debug("Fetching all users list");
     return ResponseEntity.ok(userService.findAll());
   }
 
-  @Override
-  public ResponseEntity<UserDto> register(@Valid UserCreateRequest request, MultipartFile profile,
-      HttpSession session) {
+  @PostMapping
+  public ResponseEntity<UserDto> register(@Valid @RequestPart UserCreateRequest request,
+      @RequestPart(required = false) MultipartFile profile) {
     log.info("Registering new user with email: {}", request.email());
     BinaryContentCreateRequest profileRequest = resolveProfileRequest(profile);
 
     UserDto userDto = userService.create(request, profileRequest);
-    session.setAttribute("USER_ID", userDto.id());
 
     log.info("User registered successfully. ID: {}", userDto.id());
     return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
   }
 
-  @Override
-  public ResponseEntity<UserDto> update(@PathVariable UUID userId, @Valid UserUpdateRequest request,
-      MultipartFile profile) {
+  @PatchMapping("/{userId}")
+  public ResponseEntity<UserDto> update(@PathVariable UUID userId, @Valid @RequestPart UserUpdateRequest request,
+      @RequestPart(required = false) MultipartFile profile) {
     log.info("Updating user information for ID: {}", userId);
     BinaryContentCreateRequest profileRequest = resolveProfileRequest(profile);
     return ResponseEntity.ok(userService.update(userId, request, profileRequest));
   }
 
-  @Override
-  public ResponseEntity<UserStatusDto> updateStatus(@PathVariable UUID userId,
-      @Valid UserStatusUpdateRequest request) {
-    log.debug("Updating status for user: {}, last active: {}", userId, request.newLastActiveAt());
-    return ResponseEntity.ok(userStatusService.updateByUserId(userId, request));
-  }
-
-  @Override
+  @DeleteMapping("/{userId}")
   public ResponseEntity<Void> delete(@PathVariable UUID userId) {
     log.info("Deleting user ID: {}", userId);
     userService.delete(userId);
@@ -76,7 +64,6 @@ public class UserController implements UserApi {
       return null;
     }
     try {
-      log.debug("Processing profile image: {}", profileFile.getOriginalFilename());
       return new BinaryContentCreateRequest(
           profileFile.getBytes(), profileFile.getOriginalFilename(), profileFile.getContentType(),
           profileFile.getSize()

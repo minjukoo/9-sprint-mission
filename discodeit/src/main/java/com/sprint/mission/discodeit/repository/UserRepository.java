@@ -9,10 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-  @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.status LEFT JOIN FETCH u.profile")
+  // u.status 부분을 삭제했습니다.
+  @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profile")
   List<User> findAll();
 
   Optional<User> findByUsername(String username);
+
+  Optional<User> findByEmail(String email);
 
   boolean existsByEmail(String email);
 }

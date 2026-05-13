@@ -6,8 +6,6 @@ import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.exception.DiscodeitException;
-import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserAlreadyExistsException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
@@ -16,7 +14,6 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,18 +32,17 @@ public class BasicUserService implements UserService {
   private final UserRepository userRepository;
   private final BinaryContentRepository binaryContentRepository;
   private final ChannelRepository channelRepository;
-  private final UserStatusService userStatusService;
   private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
   private final PasswordEncoder passwordEncoder;
 
+  // 추후 SecurityConfig 설정 후 주입받아 사용 예정
+  // private final SessionRegistry sessionRegistry;
+
   @Override
   @Transactional
   public UserDto create(UserCreateRequest request, BinaryContentCreateRequest profileRequest) {
-    log.info("Creating new user: email={}", request.email());
-
     if (userRepository.existsByEmail(request.email())) {
-      log.warn("User creation failed: email '{}' already exists", request.email());
       throw new UserAlreadyExistsException(request.email());
     }
 
@@ -58,20 +54,16 @@ public class BasicUserService implements UserService {
 
     String encodedPassword = passwordEncoder.encode(request.password());
 
-    User user = new User(request.username(), request.email(), encodedPassword, profile);
+    // 기본 권한 'USER'로 생성
+    User user = new User(request.username(), request.email(), encodedPassword, profile, "USER");
     User savedUser = userRepository.save(user);
-
-    userStatusService.create(savedUser.getId());
-    log.info("User created successfully: id={}", savedUser.getId());
 
     return toDtoWithOnlineStatus(savedUser);
   }
 
   @Override
   @Transactional
-  public UserDto update(UUID id, UserUpdateRequest request,
-      BinaryContentCreateRequest profileRequest) {
-    log.info("Updating user id: {}", id);
+  public UserDto update(UUID id, UserUpdateRequest request, BinaryContentCreateRequest profileRequest) {
     User user = userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException(id.toString()));
 
@@ -97,14 +89,12 @@ public class BasicUserService implements UserService {
     }
 
     user.update(updatedUsername, updatedEmail, encodedPassword, newProfile);
-
     return toDtoWithOnlineStatus(user);
   }
 
   @Override
   @Transactional
   public void delete(UUID id) {
-    log.info("Deleting user and cleaning up resources: {}", id);
     User user = userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException(id.toString()));
 
@@ -113,13 +103,11 @@ public class BasicUserService implements UserService {
     }
 
     channelRepository.findAllByUserId(id).forEach(channel -> channel.removeParticipant(user));
-
     userRepository.delete(user);
   }
 
   @Override
   public List<UserDto> findAll() {
-    log.debug("Listing all users");
     return userRepository.findAll().stream()
         .map(this::toDtoWithOnlineStatus)
         .toList();
@@ -127,7 +115,6 @@ public class BasicUserService implements UserService {
 
   @Override
   public UserDto findById(UUID id) {
-    log.debug("Finding user by id: {}", id);
     return userRepository.findById(id)
         .map(this::toDtoWithOnlineStatus)
         .orElseThrow(() -> new UserNotFoundException(id.toString()));
@@ -135,7 +122,14 @@ public class BasicUserService implements UserService {
 
   private UserDto toDtoWithOnlineStatus(User user) {
     UserDto dto = userMapper.toDto(user);
-    return new UserDto(dto.id(), dto.username(), dto.email(), dto.profile(),
-        userStatusService.isUserOnline(user.getId()));
+    // UserDto 필드 순서: id, username, email, profile, role, online
+    return new UserDto(
+        dto.id(),
+        dto.username(),
+        dto.email(),
+        dto.profile(),
+        dto.role(), // 5번째: role (String) 추가
+        false       // 6번째: online (boolean) 유지
+    );
   }
 }

@@ -1,13 +1,13 @@
+-- 기존 테이블 삭제 (순서 주의: 외래 키 참조 관계 때문)
 DROP TABLE IF EXISTS channel_participants CASCADE;
 DROP TABLE IF EXISTS message_attachments CASCADE;
-DROP TABLE IF EXISTS user_statuses CASCADE;
 DROP TABLE IF EXISTS read_statuses CASCADE;
 DROP TABLE IF EXISTS messages CASCADE;
 DROP TABLE IF EXISTS channels CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS binary_contents CASCADE;
 
--- 1. BinaryContent (timestamptz -> timestamp with time zone 변경)
+-- 1. BinaryContent
 CREATE TABLE binary_contents (
                                  id           uuid PRIMARY KEY,
                                  created_at   timestamp with time zone NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE binary_contents (
                                  content_type varchar(100) NOT NULL
 );
 
--- 2. Users
+-- 2. Users (role 컬럼 추가)
 CREATE TABLE users (
                        id         uuid PRIMARY KEY,
                        created_at timestamp with time zone NOT NULL,
@@ -25,6 +25,7 @@ CREATE TABLE users (
                        username   varchar(50) UNIQUE  NOT NULL,
                        email      varchar(100) UNIQUE NOT NULL,
                        password   varchar(60)         NOT NULL,
+                       role       varchar(20) NOT NULL DEFAULT 'USER', -- 추가된 부분
                        profile_id uuid,
                        CONSTRAINT fk_user_profile FOREIGN KEY (profile_id) REFERENCES binary_contents (id) ON DELETE SET NULL
 );
@@ -64,18 +65,7 @@ CREATE TABLE read_statuses (
                                CONSTRAINT fk_read_status_channel FOREIGN KEY (channel_id) REFERENCES channels (id) ON DELETE CASCADE
 );
 
--- 6. UserStatuses
-CREATE TABLE user_statuses (
-                               id             uuid PRIMARY KEY,
-                               created_at     timestamp with time zone NOT NULL,
-                               updated_at     timestamp with time zone NOT NULL,
-                               user_id        uuid UNIQUE NOT NULL,
-                               status         varchar(20) NOT NULL,
-                               last_active_at timestamp with time zone,
-                               CONSTRAINT fk_user_status_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-);
-
--- 7. Message_Attachments
+-- 6. Message_Attachments
 CREATE TABLE message_attachments (
                                      message_id uuid NOT NULL,
                                      binary_id  uuid NOT NULL,
@@ -84,7 +74,7 @@ CREATE TABLE message_attachments (
                                      CONSTRAINT fk_attachment_binary FOREIGN KEY (binary_id) REFERENCES binary_contents (id) ON DELETE CASCADE
 );
 
--- 8. Channel_Participants
+-- 7. Channel_Participants
 CREATE TABLE channel_participants (
                                       channel_id uuid NOT NULL,
                                       user_id    uuid NOT NULL,

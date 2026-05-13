@@ -24,14 +24,16 @@ public class User extends BaseEntity {
   @JoinColumn(name = "profile_id")
   private BinaryContent profile;
 
-  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private UserStatus status;
+  // 요구사항: 권한 필드 추가 (기본값 USER)
+  @Column(nullable = false, length = 20)
+  private String role;
 
-  public User(String username, String email, String password, BinaryContent profile) {
+  public User(String username, String email, String password, BinaryContent profile, String role) {
     this.username = username;
     this.email = email;
     this.password = password;
     this.profile = profile;
+    this.role = (role != null) ? role : "USER";
   }
 
   public void update(String username, String email, String password, BinaryContent profile) {
@@ -45,5 +47,10 @@ public class User extends BaseEntity {
       this.password = password;
     }
     this.profile = profile;
+  }
+
+  // 권한 수정을 위한 메서드 추가
+  public void updateRole(String role) {
+    this.role = role;
   }
 }

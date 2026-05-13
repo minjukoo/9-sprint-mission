@@ -1,15 +1,11 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
-import com.sprint.mission.discodeit.dto.response.UserStatusDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,8 +24,7 @@ public interface UserApi {
   @PostMapping(consumes = "multipart/form-data")
   ResponseEntity<UserDto> register(
       @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
-      @RequestPart(value = "profile", required = false) MultipartFile profile,
-      HttpSession session
+      @RequestPart(value = "profile", required = false) MultipartFile profile
   );
 
   @Operation(summary = "User 정보 수정")
@@ -38,13 +33,6 @@ public interface UserApi {
       @PathVariable(name = "userId") UUID userId,
       @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
       @RequestPart(value = "profile", required = false) MultipartFile profile
-  );
-
-  @Operation(summary = "User 온라인 상태 업데이트")
-  @PatchMapping("/{userId}/userStatus")
-  ResponseEntity<UserStatusDto> updateStatus(
-      @PathVariable(name = "userId") UUID userId,
-      @Valid @RequestBody UserStatusUpdateRequest request
   );
 
   @Operation(summary = "User 삭제")
