@@ -25,4 +25,9 @@ public interface AuthApi {
   @Operation(summary = "사용자 권한 수정")
   @PutMapping("/role")
   ResponseEntity<UserDto> updateRole(@Valid @RequestBody UserRoleUpdateRequest request);
+
+  // 추가: 프론트엔드 세션 갱신용 엔드포인트
+  @Operation(summary = "세션 갱신")
+  @PostMapping("/refresh")
+  ResponseEntity<UserDto> refresh(@AuthenticationPrincipal DiscodeitUserDetails userDetails);
 }

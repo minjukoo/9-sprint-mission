@@ -10,9 +10,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import org.springframework.transaction.annotation.Transactional;
 
 @Getter
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DiscodeitUserDetails implements UserDetails {
 
   private final UserDto userDto;
