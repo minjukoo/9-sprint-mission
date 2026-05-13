@@ -35,6 +35,7 @@ public class BasicUserService implements UserService {
   private final BinaryContentService binaryContentService;
   private final UserMapper userMapper;
   private final PasswordEncoder passwordEncoder;
+  private final org.springframework.security.core.session.SessionRegistry sessionRegistry;
 
   // 추후 SecurityConfig 설정 후 주입받아 사용 예정
   // private final SessionRegistry sessionRegistry;
@@ -122,14 +123,20 @@ public class BasicUserService implements UserService {
 
   private UserDto toDtoWithOnlineStatus(User user) {
     UserDto dto = userMapper.toDto(user);
-    // UserDto 필드 순서: id, username, email, profile, role, online
+
+    // SessionRegistry에서 현재 접속 중인 유저인지 확인
+    boolean isOnline = sessionRegistry.getAllPrincipals().stream()
+        .filter(principal -> principal instanceof com.sprint.mission.discodeit.security.DiscodeitUserDetails)
+        .map(principal -> (com.sprint.mission.discodeit.security.DiscodeitUserDetails) principal)
+        .anyMatch(userDetails -> userDetails.getUserDto().id().equals(user.getId()));
+
     return new UserDto(
         dto.id(),
         dto.username(),
         dto.email(),
         dto.profile(),
-        dto.role(), // 5번째: role (String) 추가
-        false       // 6번째: online (boolean) 유지
+        dto.role(),
+        isOnline // [수정] 계산된 온라인 상태값 전달
     );
   }
 }
