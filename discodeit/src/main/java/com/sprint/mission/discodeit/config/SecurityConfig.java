@@ -42,18 +42,23 @@ public class SecurityConfig {
         .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
 
         // 3. 인가 설정
+        // 3. 인가 설정 부분 수정
         .authorizeHttpRequests(auth -> auth
-            // 퍼블릭 접근 허용 (명세서 요구사항)
+            // [추가] 정적 리소스 및 메인 페이지 허용 (이게 있어야 화면이 나옵니다!)
+            .requestMatchers("/", "/index.html", "/favicon.ico", "/static/**", "/assets/**")
+            .permitAll()
+
+            // 퍼블릭 접근 허용 (기본 요구사항)
             .requestMatchers("/api/auth/csrf-token").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // 회원가입
+            .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
             .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
 
-            // 정적 리소스 및 도구
+            // 나머지 도구들
             .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
             .requestMatchers("/h2-console/**").permitAll()
             .requestMatchers("/actuator/**").permitAll()
 
-            // 나머지 모든 요청은 인증 필요
+            // 위에서 명시하지 않은 나머지만 인증 필요
             .anyRequest().authenticated()
         )
 
@@ -68,7 +73,8 @@ public class SecurityConfig {
         // 5. 로그아웃 설정 (204 No Content 응답)
         .logout(logout -> logout
             .logoutUrl("/api/auth/logout")
-            .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
+            .logoutSuccessHandler(
+                new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
             .invalidateHttpSession(true)
             .deleteCookies("JSESSIONID")
             .permitAll()
