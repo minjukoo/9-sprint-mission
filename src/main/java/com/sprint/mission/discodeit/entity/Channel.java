@@ -1,67 +1,41 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.entity.base.BaseEntity;
-import jakarta.persistence.*;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
-@Getter
 @Table(name = "channels")
-@NoArgsConstructor
-public class Channel extends BaseEntity {
-
-  private String name;
-  private String description;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "owner_id", nullable = false)
-  private User owner;
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Channel extends BaseUpdatableEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private ChannelType type;
+  @Column(length = 100)
+  private String name;
+  @Column(length = 500)
+  private String description;
 
-  private Instant lastMessageAt;
-
-  @OneToMany(mappedBy = "channel", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<Message> messages = new ArrayList<>();
-
-  @ManyToMany
-  @JoinTable(
-      name = "channel_participants",
-      joinColumns = @JoinColumn(name = "channel_id"),
-      inverseJoinColumns = @JoinColumn(name = "user_id")
-  )
-  private List<User> participants = new ArrayList<>();
-
-  public Channel(String name, String description, ChannelType type, User owner) {
-    this.name = name;
-    this.description = description;
+  public Channel(ChannelType type, String name, String description) {
     this.type = type;
-    this.owner = owner;
-  }
-
-  public void update(String name, String description) {
     this.name = name;
     this.description = description;
   }
 
-  public void updateLastMessageAt(Instant lastMessageAt) {
-    this.lastMessageAt = lastMessageAt;
-  }
-
-  public void addParticipant(User user) {
-    if (user != null && !this.participants.contains(user)) {
-      this.participants.add(user);
+  public void update(String newName, String newDescription) {
+    if (newName != null && !newName.equals(this.name)) {
+      this.name = newName;
     }
-  }
-
-  public void removeParticipant(User user) {
-    this.participants.remove(user);
+    if (newDescription != null && !newDescription.equals(this.description)) {
+      this.description = newDescription;
+    }
   }
 }
