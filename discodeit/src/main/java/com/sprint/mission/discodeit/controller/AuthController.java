@@ -29,24 +29,25 @@ public class AuthController implements AuthApi {
   }
 
   @Override
-  public ResponseEntity<UserDto> getMe(@AuthenticationPrincipal DiscodeitUserDetails userDetails) {
+  public ResponseEntity<java.util.Map<String, Object>> getMe(
+      @AuthenticationPrincipal DiscodeitUserDetails userDetails) {
     if (userDetails == null) {
-      log.warn("인증되지 않은 사용자의 내 정보 조회 요청");
       return ResponseEntity.status(401).build();
     }
-    return ResponseEntity.ok(userService.findById(userDetails.getUserDto().id()));
+    // "user" 키로 감싸서 반환
+    return ResponseEntity.ok(
+        java.util.Map.of("user", userService.findById(userDetails.getUserDto().id())));
   }
 
-  // 추가 구현
   @Override
-  public ResponseEntity<UserDto> refresh(@AuthenticationPrincipal DiscodeitUserDetails userDetails) {
+  public ResponseEntity<java.util.Map<String, Object>> refresh(
+      @AuthenticationPrincipal DiscodeitUserDetails userDetails) {
     if (userDetails == null) {
-      log.warn("세션 갱신 실패: 인증 정보 없음");
       return ResponseEntity.status(401).build();
     }
-    log.debug("세션 갱신 요청: {}", userDetails.getUsername());
-    // 최신 온라인 상태 반영을 위해 userService.findById 사용
-    return ResponseEntity.ok(userService.findById(userDetails.getUserDto().id()));
+    // "user" 키로 감싸서 반환
+    return ResponseEntity.ok(
+        java.util.Map.of("user", userService.findById(userDetails.getUserDto().id())));
   }
 
   @Override

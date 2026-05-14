@@ -20,14 +20,15 @@ public interface AuthApi {
 
   @Operation(summary = "현재 사용자 정보 조회")
   @GetMapping("/me")
-  ResponseEntity<UserDto> getMe(@AuthenticationPrincipal DiscodeitUserDetails userDetails);
+  ResponseEntity<java.util.Map<String, Object>> getMe(
+      @AuthenticationPrincipal DiscodeitUserDetails userDetails);
 
   @Operation(summary = "사용자 권한 수정")
   @PutMapping("/role")
   ResponseEntity<UserDto> updateRole(@Valid @RequestBody UserRoleUpdateRequest request);
 
-  // 추가: 프론트엔드 세션 갱신용 엔드포인트
   @Operation(summary = "세션 갱신")
   @PostMapping("/refresh")
-  ResponseEntity<UserDto> refresh(@AuthenticationPrincipal DiscodeitUserDetails userDetails);
+  ResponseEntity<java.util.Map<String, Object>> refresh(
+      @AuthenticationPrincipal DiscodeitUserDetails userDetails);
 }
