@@ -30,17 +30,12 @@ public interface ChannelApi {
       @Valid @RequestBody PrivateChannelCreateRequest request,
       @AuthenticationPrincipal DiscodeitUserDetails userDetails); // 수정
 
+
   @Operation(summary = "User가 참여 중인 Channel 목록 조회")
   @GetMapping
   ResponseEntity<List<ChannelDto>> findAll(
       @RequestParam(name = "userId") UUID userId,
-      @AuthenticationPrincipal DiscodeitUserDetails userDetails); // HttpSession 제거, 인증 객체 추가
-
-  /*@Operation(summary = "User가 참여 중인 Channel 목록 조회")
-  @GetMapping
-  ResponseEntity<List<ChannelDto>> findAll(
-      @RequestParam(name = "userId") UUID userId,
-      @AuthenticationPrincipal DiscodeitUserDetails userDetails); // 수정*/
+      @AuthenticationPrincipal DiscodeitUserDetails userDetails); // 수정
 
   @Operation(summary = "Channel 정보 수정")
   @PatchMapping("/{channelId}")
