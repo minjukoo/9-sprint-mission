@@ -45,6 +45,7 @@ public class SecurityConfig {
         // 3. 인가 설정 부분 수정
         .authorizeHttpRequests(auth -> auth
             // [추가] 정적 리소스 및 메인 페이지 허용 (이게 있어야 화면이 나옵니다!)
+            .requestMatchers("/api/auth/refresh", "/api/auth/me").permitAll()
             .requestMatchers("/", "/index.html", "/favicon.ico", "/static/**", "/assets/**")
             .permitAll()
 
