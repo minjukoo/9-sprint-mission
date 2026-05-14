@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.PageResponse; // 추가
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "User", description = "User API")
@@ -18,7 +18,10 @@ public interface UserApi {
 
   @Operation(summary = "전체 User 목록 조회")
   @GetMapping
-  ResponseEntity<List<UserDto>> findAll();
+  ResponseEntity<PageResponse<UserDto>> findAll( // 반환 타입 수정
+      @RequestParam(name = "page", defaultValue = "0") int page, // 파라미터 추가
+      @RequestParam(name = "size", defaultValue = "10") int size
+  );
 
   @Operation(summary = "User 등록")
   @PostMapping(consumes = "multipart/form-data")

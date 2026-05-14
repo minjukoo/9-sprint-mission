@@ -9,6 +9,8 @@ import com.sprint.mission.discodeit.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,20 +29,12 @@ public class UserController {
   private final UserService userService;
 
   @GetMapping
-  public ResponseEntity<PageResponse<UserDto>> findAll() {
-    log.debug("명세서 규격(PageResponse)에 맞춰 유저 목록을 조회합니다.");
-    List<UserDto> users = userService.findAll();
+  public ResponseEntity<PageResponse<UserDto>> findAll(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
 
-    // 명세서(api.json)의 PageResponse 구조를 그대로 재현합니다.
-    PageResponse<UserDto> response = new PageResponse<>(
-        users,           // content: 유저 배열
-        null,            // nextCursor: 페이징 미구현이므로 null
-        users.size(),    // size: 현재 리스트 크기
-        false,           // hasNext: 다음 페이지 없음
-        (long) users.size() // totalElements: 전체 유저 수
-    );
-
-    return ResponseEntity.ok(response);
+    Pageable pageable = PageRequest.of(page, size);
+    return ResponseEntity.ok(userService.findAll(pageable));
   }
 
   @PostMapping

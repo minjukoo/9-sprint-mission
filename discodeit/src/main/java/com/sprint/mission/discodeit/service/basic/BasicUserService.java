@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
@@ -17,6 +18,8 @@ import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +68,8 @@ public class BasicUserService implements UserService {
 
   @Override
   @Transactional
-  public UserDto update(UUID id, UserUpdateRequest request, BinaryContentCreateRequest profileRequest) {
+  public UserDto update(UUID id, UserUpdateRequest request,
+      BinaryContentCreateRequest profileRequest) {
     User user = userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException(id.toString()));
 
@@ -109,10 +113,20 @@ public class BasicUserService implements UserService {
   }
 
   @Override
-  public List<UserDto> findAll() {
-    return userRepository.findAll().stream()
+  public PageResponse<UserDto> findAll(Pageable pageable) {
+    Page<User> userPage = userRepository.findAll(pageable);
+
+    List<UserDto> content = userPage.getContent().stream()
         .map(this::toDtoWithOnlineStatus)
         .toList();
+
+    return new PageResponse<>(
+        content,
+        null, // Offset 기반 페이징이므로 커서는 null
+        userPage.getSize(),
+        userPage.hasNext(),
+        userPage.getTotalElements()
+    );
   }
 
   @Override

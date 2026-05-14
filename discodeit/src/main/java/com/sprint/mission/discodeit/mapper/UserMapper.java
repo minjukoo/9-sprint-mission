@@ -9,7 +9,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {BinaryContentMapper.class})
 public interface UserMapper {
 
-  @Mapping(target = "online", source = "online")
+  @Mapping(target = "online", ignore = true)
   @Mapping(target = "profile", source = "profile")
   // 핵심 수정: Java 코드를 직접 주입하여 컴파일 에러를 방지하고 ROLE_ 접두사를 보장합니다.
   @Mapping(target = "role", expression = "java(user.getRole() != null ? (user.getRole().toString().startsWith(\"ROLE_\") ? user.getRole().toString() : \"ROLE_\" + user.getRole().toString()) : \"ROLE_USER\")")
