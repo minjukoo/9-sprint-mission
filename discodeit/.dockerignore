@@ -1,9 +1,0 @@
-.gradle/
-build/
-bin/
-out/
-.idea/
-*.iml
-.env
-Dockerfile
-docker-compose.yml
