@@ -32,6 +32,39 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
+        // 1. 모든 보안 기능 끄기
+        .csrf(AbstractHttpConfigurer::disable)
+        .cors(AbstractHttpConfigurer::disable)
+
+        // 2. 모든 요청에 대해 무조건 허용
+        .authorizeHttpRequests(auth -> auth
+            .anyRequest().permitAll()
+        )
+
+        // 3. 필터가 간섭하지 않도록 기존 로그인/로그아웃 설정 비활성화
+        .formLogin(AbstractHttpConfigurer::disable)
+        .logout(AbstractHttpConfigurer::disable)
+
+        // 4. H2 콘솔 등을 위한 헤더 설정 유지
+        .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
+
+    return http.build();
+  }
+
+  @Bean
+  public SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
+
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
+  }
+}
+
+  /*@Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
         // 1. CSRF 설정 (CSR/SPA 환경 최적화)
         .csrf(csrf -> csrf
             .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
@@ -119,4 +152,4 @@ public class SecurityConfig {
   public HttpSessionEventPublisher httpSessionEventPublisher() {
     return new HttpSessionEventPublisher();
   }
-}
+}*/
