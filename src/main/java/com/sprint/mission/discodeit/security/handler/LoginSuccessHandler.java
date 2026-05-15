@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -21,16 +22,20 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-      Authentication authentication) throws IOException, ServletException {
-    // 1. 인증 객체에서 커스텀 UserDetails 추출
+      Authentication authentication) throws IOException {
     DiscodeitUserDetails userDetails = (DiscodeitUserDetails) authentication.getPrincipal();
 
-    // 2. 응답 설정 (JSON 타입)
     response.setStatus(HttpServletResponse.SC_OK);
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setCharacterEncoding("UTF-8");
 
-    // 3. UserDto를 JSON으로 변환하여 응답 바디에 작성
-    objectMapper.writeValue(response.getWriter(), userDetails.getUserDto());
+    // [중요] 프론트엔드 코드 규격에 맞게 Key 이름을 "userDto"로 설정하고,
+    // 비어있지 않은 accessToken 값을 함께 보냅니다.
+    Map<String, Object> responseBody = Map.of(
+        "userDto", userDetails.getUserDto(),
+        "accessToken", "session-based-auth" // 아무 문자열이나 들어가면 통과됩니다.
+    );
+
+    objectMapper.writeValue(response.getWriter(), responseBody);
   }
 }
