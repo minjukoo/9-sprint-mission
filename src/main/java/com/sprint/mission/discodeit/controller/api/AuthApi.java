@@ -14,6 +14,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Tag(name = "Auth", description = "인증 및 권한 API")
 public interface AuthApi {
 
+  // AuthApi.java
+  @Operation(summary = "배포 테스트용 핑")
+  @GetMapping("test/ping")
+  ResponseEntity<String> ping();
+
   @Operation(summary = "CSRF 토큰 발급")
   @GetMapping("csrf-token")
   ResponseEntity<Void> getCsrfToken(CsrfToken csrfToken);
