@@ -65,7 +65,7 @@ jobs:
           # [경로 수정] discodeit 폴더 안에 생성될 JSON 파일의 경로를 명시합니다.
           task-definition: task-definition.json
           container-name: discodeit-app
-          image: ${{ steps.login-ecr-public.outputs.registry }}/${{ vars.ECR_REPOSITORY_URI }}:latest
+          image: ${{ steps.login-ecr-public.outputs.registry }}/${{ vars.ECR_REPOSITORY_URI }}:${{ github.sha }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
