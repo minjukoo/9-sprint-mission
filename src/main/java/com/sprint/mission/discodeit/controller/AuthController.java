@@ -22,6 +22,12 @@ public class AuthController implements AuthApi {
 
   private final AuthService authService;
 
+  // AuthController.java 에 추가
+  @GetMapping("/test/ping")
+  public ResponseEntity<String> ping() {
+    return ResponseEntity.ok("pong-v2-2026-05-15"); // 시간을 적어서 확실히 구분
+  }
+
   @GetMapping("csrf-token")
   @Override
   public ResponseEntity<Void> getCsrfToken(CsrfToken csrfToken) {

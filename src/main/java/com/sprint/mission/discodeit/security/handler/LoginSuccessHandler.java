@@ -35,7 +35,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     // [중요] 프론트엔드 코드 규격에 맞게 Key 이름을 "userDto"로 설정하고,
     // 비어있지 않은 accessToken 값을 함께 보냅니다.
     Map<String, Object> responseBody = Map.of(
-        "userDto", userDetails.getUserDto(),
+        "aaaaaTest", userDetails.getUserDto(),
         "accessToken", "session-based-auth" // 아무 문자열이나 들어가면 통과됩니다.
     );
 
