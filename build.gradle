@@ -65,3 +65,8 @@ jacocoTestReport {
         html.required = true
     }
 }
+
+// build.gradle 맨 밑에 추가
+jar {
+    enabled = false
+}
