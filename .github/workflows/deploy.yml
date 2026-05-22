@@ -29,6 +29,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Build with Gradle
+        run: ./gradlew clean bootJar
+
       # 1. AWS 인증 (Secrets 활용)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
